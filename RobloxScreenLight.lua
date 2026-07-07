@@ -1,23 +1,27 @@
-local Debris = game:GetService("Debris")
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
-local UserInputService = game:GetService("UserInputService")
- 
+local camera = Workspace.CurrentCamera
+
+-- GUI Creation
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "DynamicUI"
+screenGui.ResetOnSpawn = false
 screenGui.Parent = playerGui
- 
+
 local frame = Instance.new("Frame")
 frame.Name = "MainFrame"
-frame.Size = UDim2.new(0, 150, 0, 60)
+frame.Size = UDim2.new(0, 180, 0, 60)
 frame.Position = UDim2.new(0.25, -75, 0.4, -15)
 frame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-frame.Active = true 
+frame.Active = true
+frame.Draggable = true -- Built-in Roblox draggability makes UI movement simpler!
 frame.Parent = screenGui
- 
+
 local textLabel = Instance.new("TextLabel")
 textLabel.Name = "TitleLabel"
 textLabel.Size = UDim2.new(1, 0, 0, 30)
@@ -26,7 +30,7 @@ textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 textLabel.TextSize = 12
 textLabel.BackgroundTransparency = 1
 textLabel.Parent = frame
- 
+
 local lightButton = Instance.new("TextButton")
 lightButton.Name = "TitleButton"
 lightButton.Position = UDim2.new(0, 0, 0, 30)
@@ -35,37 +39,89 @@ lightButton.Text = "啟用螢幕照明燈"
 lightButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 lightButton.BackgroundColor3 = Color3.fromRGB(64, 192, 255)
 lightButton.TextSize = 14
-lightButton.BackgroundTransparency = 0
 lightButton.Parent = frame
 
 local closeButton = Instance.new("TextButton")
-closeButton.Name = "TitleButton"
+closeButton.Name = "CloseButton"
 closeButton.Position = UDim2.new(0, 0, 0, -30)
 closeButton.Size = UDim2.new(0, 45, 0, 30)
 closeButton.Text = "關閉"
 closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 closeButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
 closeButton.TextSize = 16
-closeButton.BackgroundTransparency = 0
 closeButton.Parent = frame
- 
-local player = Players.LocalPlayer
-local camera = Workspace.CurrentCamera
 
-local MAX_DISTANCE = 500 
+local setButton = Instance.new("TextButton")
+setButton.Name = "SetButton"
+setButton.Position = UDim2.new(0, -50, 0, 35)
+setButton.Size = UDim2.new(0, 45, 0, 30)
+setButton.Text = "設定"
+setButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+setButton.BackgroundColor3 = Color3.fromRGB(128, 128, 0)
+setButton.TextSize = 16
+setButton.Parent = frame
 
-local currentHitPosition = Vector3.zero
-local hasHit = false
- 
+local settingBox = Instance.new("Frame")
+settingBox.Name = "SettingsFrame"
+settingBox.Position = UDim2.new(0, 0, 0, 60)
+settingBox.Size = UDim2.new(1, 0, 0, 60)
+settingBox.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+settingBox.BackgroundTransparency = 0.5
+settingBox.Visible = false
+settingBox.Parent = frame
+
+local lightText = Instance.new("TextLabel")
+lightText.Name = "LightText"
+lightText.Size = UDim2.new(0.5, 0, 0.5, 0)
+lightText.Text = "擴散距離 : "
+lightText.TextColor3 = Color3.fromRGB(255, 255, 255)
+lightText.TextSize = 14
+lightText.BackgroundTransparency = 1
+lightText.Parent = settingBox
+
+local lightTextBox = Instance.new("TextBox")
+lightTextBox.Name = "LightTextBox"
+lightTextBox.Position = UDim2.new(0.5, 0, 0, 0)
+lightTextBox.Size = UDim2.new(0.5, 0, 0.5, 0)
+lightTextBox.Text = "80"
+lightTextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+lightTextBox.TextSize = 14
+lightTextBox.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+lightTextBox.Parent = settingBox
+
+local brightText = Instance.new("TextLabel")
+brightText.Name = "BrightText"
+brightText.Position = UDim2.new(0, 0, 0.5, 0)
+brightText.Size = UDim2.new(0.5, 0, 0.5, 0)
+brightText.Text = "亮度 : "
+brightText.TextColor3 = Color3.fromRGB(255, 255, 255)
+brightText.TextSize = 14
+brightText.BackgroundTransparency = 1
+brightText.Parent = settingBox
+
+local brightTextBox = Instance.new("TextBox")
+brightTextBox.Name = "BrightTextBox"
+brightTextBox.Position = UDim2.new(0.5, 0, 0.5, 0)
+brightTextBox.Size = UDim2.new(0.5, 0, 0.5, 0)
+brightTextBox.Text = "3"
+brightTextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+brightTextBox.TextSize = 14
+brightTextBox.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+brightTextBox.Parent = settingBox
+
+-- Light Setup
+local MAX_DISTANCE = 500
+local isLightEnabled = false
+
 local part = Instance.new("Part")
 part.Size = Vector3.new(1, 1, 1)
 part.Position = Vector3.new(0, -5000, 0)
-part.Color = Color3.fromRGB(255, 255, 255) 
+part.Color = Color3.fromRGB(255, 255, 255)
 part.Material = Enum.Material.Neon
 part.Anchored = true
 part.CanCollide = false
 part.Parent = Workspace
- 
+
 local light = Instance.new("PointLight")
 light.Color = Color3.fromRGB(255, 255, 255)
 light.Range = 80
@@ -73,109 +129,71 @@ light.Brightness = 3
 light.Shadows = true
 light.Enabled = false
 light.Parent = part
- 
-local isLightEnabled = false
- 
+
+-- Light Logic
 RunService.RenderStepped:Connect(function()
     local character = player.Character
     if not character then return end
     
-    local cameraOrigin = camera.CFrame.Position
-    local cameraDirection = camera.CFrame.LookVector * MAX_DISTANCE
-    
-    local raycastParams = RaycastParams.new()
-    raycastParams.FilterDescendantsInstances = {character, part}
-    raycastParams.FilterType = Enum.RaycastFilterType.Exclude
-    
-    local raycastResult = Workspace:Raycast(cameraOrigin, cameraDirection, raycastParams)
-    
-    if raycastResult then
-        hasHit = true
-        currentHitPosition = raycastResult.Position
-        part.Position = currentHitPosition + Vector3.new(0, 0.5, 0)
+    if isLightEnabled then
+        local cameraOrigin = camera.CFrame.Position
+        local cameraDirection = camera.CFrame.LookVector * MAX_DISTANCE
+        
+        local raycastParams = RaycastParams.new()
+        raycastParams.FilterDescendantsInstances = {character, part}
+        raycastParams.FilterType = Enum.RaycastFilterType.Exclude
+        
+        local raycastResult = Workspace:Raycast(cameraOrigin, cameraDirection, raycastParams)
+        
+        if raycastResult then
+            part.Position = raycastResult.Position + Vector3.new(0, 0.5, 0)
+        else
+            part.Position = cameraOrigin + cameraDirection
+        end
+        
+        light.Enabled = true
     else
-        hasHit = false
+        light.Enabled = false
         part.Position = Vector3.new(0, -5000, 0)
     end
 end)
 
-local function spawnBlockAtPlayer(player)
-    local character = player.Character
-    if not character then return end
-    local rootPart = character:FindFirstChild("HumanoidRootPart")
-    if not rootPart then return end
-    
-    if isLightEnabled and hasHit then
-        light.Enabled = true
-    else
-        light.Enabled = false
-    end
-end
-
-local dragging = false
-local dragStart, startPos
- 
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        local mousePos = UserInputService:GetMouseLocation()
-        local framePos = frame.AbsolutePosition
-        local frameSize = frame.AbsoluteSize
-        
-        local topbarInset = 36 
-        local adjustedMouseY = mousePos.Y - topbarInset
-        
-        if mousePos.X >= framePos.X and mousePos.X <= (framePos.X + frameSize.X) and
-            adjustedMouseY >= framePos.Y and adjustedMouseY <= (framePos.Y + frameSize.Y) then
-            
-            dragging = true
-            dragStart = input.Position
-            startPos = frame.Position
-        end
-    end
-end)
- 
-UserInputService.InputChanged:Connect(function(input)
-    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-        local delta = input.Position - dragStart
-        frame.Position = UDim2.new(
-        startPos.X.Scale, 
-        startPos.X.Offset + delta.X, 
-        startPos.Y.Scale, 
-        startPos.Y.Offset + delta.Y
-        )
-    end
-end)
- 
-UserInputService.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        dragging = false
-    end
-end)
- 
-local function onClick()
+-- Button Events
+lightButton.MouseButton1Click:Connect(function()
     isLightEnabled = not isLightEnabled
-    
     if isLightEnabled then
         lightButton.Text = "停用螢幕照明燈"
-        lightButton.BackgroundColor3 = Color3.fromRGB(255, 64, 64) 
+        lightButton.BackgroundColor3 = Color3.fromRGB(255, 64, 64)
     else
         lightButton.Text = "啟用螢幕照明燈"
         lightButton.BackgroundColor3 = Color3.fromRGB(64, 192, 255)
     end
-end
- 
-lightButton.MouseButton1Click:Connect(onClick)
+end)
 
-task.defer(function()
-    while true do
-        spawnBlockAtPlayer(player)
-        task.wait(0)
+closeButton.MouseButton1Click:Connect(function() 
+    screenGui:Destroy()
+    part:Destroy()
+end)
+
+setButton.MouseButton1Click:Connect(function()
+    settingBox.Visible = not settingBox.Visible
+end)
+
+-- TextBox Settings
+lightTextBox.FocusLost:Connect(function(enterPressed)
+    local num = tonumber(lightTextBox.Text)
+    if num then
+        light.Range = math.clamp(num, 0, 1000)
+    else
+        lightTextBox.Text = tostring(light.Range)
     end
 end)
 
-closeButton.MouseButton1Click:Connect(function()
-    if screenGui then
-        screenGui:Destroy()
-        part:Destroy()
+brightTextBox.FocusLost:Connect(function(enterPressed)
+    local num = tonumber(brightTextBox.Text)
+    if num then
+        light.Brightness = math.clamp(num, 0, 50)
+    else
+        brightTextBox.Text = tostring(light.Brightness)
     end
 end)
