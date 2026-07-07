@@ -2,7 +2,8 @@ local Debris = game:GetService("Debris")
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local RunService = game:GetService("RunService")
-local playerGui = script.Parent
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
 local UserInputService = game:GetService("UserInputService")
  
 local screenGui = Instance.new("ScreenGui")
