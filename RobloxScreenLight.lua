@@ -11,31 +11,42 @@ screenGui.Parent = playerGui
 
 local frame = Instance.new("Frame")
 frame.Name = "MainFrame"
-frame.Size = UDim2.new(0, 300, 0, 100)
-frame.Position = UDim2.new(0.5, -150, 0.5, -100)
+frame.Size = UDim2.new(0, 150, 0, 60)
+frame.Position = UDim2.new(0.5, -75, 0, -15)
 frame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 frame.Active = true 
 frame.Parent = screenGui
 
 local textLabel = Instance.new("TextLabel")
 textLabel.Name = "TitleLabel"
-textLabel.Size = UDim2.new(1, 0, 0, 50)
+textLabel.Size = UDim2.new(1, 0, 0, 30)
 textLabel.Text = "Ultra 螢幕中央照明燈 V1.0"
 textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-textLabel.TextSize = 20
+textLabel.TextSize = 12
 textLabel.BackgroundTransparency = 1
 textLabel.Parent = frame
 
 local lightButton = Instance.new("TextButton")
 lightButton.Name = "TitleButton"
-lightButton.Position = UDim2.new(0, 0, 0, 50)
-lightButton.Size = UDim2.new(1, 0, 0, 50)
+lightButton.Position = UDim2.new(0, 0, 0, 30)
+lightButton.Size = UDim2.new(1, 0, 0, 30)
 lightButton.Text = "啟用螢幕照明燈"
 lightButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 lightButton.BackgroundColor3 = Color3.fromRGB(64, 192, 255)
-lightButton.TextSize = 20
+lightButton.TextSize = 14
 lightButton.BackgroundTransparency = 0
 lightButton.Parent = frame
+ 
+local closeButton = Instance.new("TextButton")
+closeButton.Name = "TitleButton"
+closeButton.Position = UDim2.new(0, 0, 0, -30)
+closeButton.Size = UDim2.new(0, 45, 0, 30)
+closeButton.Text = "關閉"
+closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+closeButton.TextSize = 16
+closeButton.BackgroundTransparency = 0
+closeButton.Parent = frame
 
 local player = Players.LocalPlayer
 local camera = Workspace.CurrentCamera
@@ -56,9 +67,10 @@ part.Parent = Workspace
 
 local light = Instance.new("PointLight")
 light.Color = Color3.fromRGB(255, 255, 255)
-light.Range = 40
+light.Range = 80
 light.Brightness = 3
 light.Shadows = true
+light.Enabled = false
 light.Parent = part
 
 local isLightEnabled = false
@@ -89,11 +101,12 @@ local function spawnBlockAtPlayer(player)
     if not character then return end
     local rootPart = character:FindFirstChild("HumanoidRootPart")
     if not rootPart then return end
+    part.Position = currentHitPosition + Vector3.new(0, 0.5, 0)
     
     if isLightEnabled and hasHit then
-        part.Position = currentHitPosition + Vector3.new(0, 0.5, 0)
+        light.Enabled = true
     else
-        part.Position = Vector3.new(0, -5000, 0)
+        light.Enabled = false
     end
 end
  
@@ -138,23 +151,30 @@ UserInputService.InputEnded:Connect(function(input)
 end)
 
 local function onClick()
-    isLightEnabled = not isLightEnabled 
+    isLightEnabled = not isLightEnabled
     
     if isLightEnabled then
         lightButton.Text = "停用螢幕照明燈"
         lightButton.BackgroundColor3 = Color3.fromRGB(255, 64, 64) 
     else
         lightButton.Text = "啟用螢幕照明燈"
-        lightButton.BackgroundColor3 = Color3.fromRGB(64, 192, 255) 
-        part.Position = Vector3.new(0, -5000, 0) 
+        lightButton.BackgroundColor3 = Color3.fromRGB(64, 192, 255)
+        part.Position = Vector3.new(0, -5000, 0)
     end
 end
 
 lightButton.MouseButton1Click:Connect(onClick)
-
+ 
 task.defer(function()
     while true do
         spawnBlockAtPlayer(player)
         task.wait(0)
+    end
+end)
+ 
+closeButton.MouseButton1Click:Connect(function()
+    if screenGui then
+        screenGui:Destroy()
+        part:Destroy()
     end
 end)
