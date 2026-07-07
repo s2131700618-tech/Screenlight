@@ -132,26 +132,25 @@ RunService.RenderStepped:Connect(function()
     local character = player.Character
     if not character then return end
     
+    local cameraOrigin = camera.CFrame.Position
+    local cameraDirection = camera.CFrame.LookVector * MAX_DISTANCE
+    
+    local raycastParams = RaycastParams.new()
+    raycastParams.FilterDescendantsInstances = {character, part}
+    raycastParams.FilterType = Enum.RaycastFilterType.Exclude
+    
+    local raycastResult = Workspace:Raycast(cameraOrigin, cameraDirection, raycastParams)
+    
+    if raycastResult then
+        part.Position = raycastResult.Position + Vector3.new(0, 0.5, 0)
+    else
+        part.Position = cameraOrigin + cameraDirection
+    end
+    
     if isLightEnabled then
-        local cameraOrigin = camera.CFrame.Position
-        local cameraDirection = camera.CFrame.LookVector * MAX_DISTANCE
-        
-        local raycastParams = RaycastParams.new()
-        raycastParams.FilterDescendantsInstances = {character, part}
-        raycastParams.FilterType = Enum.RaycastFilterType.Exclude
-        
-        local raycastResult = Workspace:Raycast(cameraOrigin, cameraDirection, raycastParams)
-        
-        if raycastResult then
-            part.Position = raycastResult.Position + Vector3.new(0, 0.5, 0)
-        else
-            part.Position = cameraOrigin + cameraDirection
-        end
-        
         light.Enabled = true
     else
         light.Enabled = false
-        part.Position = Vector3.new(0, -5000, 0)
     end
 end)
  
@@ -220,6 +219,6 @@ local function updateSettingBox()
     end
 end
  
-local myInterval = setInterval(updateSettingBox, 0.05)
+local myInterval = setInterval(updateSettingBox, 0)
  
 RunService.RenderStepped:Connect(updateSettingBox)
