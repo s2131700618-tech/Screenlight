@@ -120,11 +120,12 @@ part.Anchored = true
 part.CanCollide = false
 part.Parent = Workspace
  
-local light = Instance.new("PointLight")
+local light = Instance.new("SurfaceLight")
+light.Face = Enum.NormalId.Front
 light.Color = Color3.fromRGB(255, 255, 255)
 light.Range = 80
 light.Brightness = 3
-light.Shadows = true
+light.Shadows = false
 light.Enabled = false
 light.Parent = part
  
@@ -142,7 +143,7 @@ RunService.RenderStepped:Connect(function()
     local raycastResult = Workspace:Raycast(cameraOrigin, cameraDirection, raycastParams)
     
     if raycastResult then
-        part.Position = raycastResult.Position + Vector3.new(0, 0.5, 0)
+        part.Position = raycastResult.Position
     else
         part.Position = cameraOrigin + cameraDirection
     end
@@ -178,7 +179,7 @@ end)
 lightTextBox.FocusLost:Connect(function(enterPressed)
     local num = tonumber(lightTextBox.Text)
     if num then
-        light.Range = math.max(num, 0)
+        light.Range = math.max(num, 5)
     else
         lightTextBox.Text = tostring(light.Range)
     end
