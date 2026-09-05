@@ -120,14 +120,33 @@ part.Anchored = true
 part.CanCollide = false
 part.Parent = Workspace
  
-local light = Instance.new("SurfaceLight")
-light.Face = Enum.NormalId.Front
-light.Color = Color3.fromRGB(255, 255, 255)
-light.Range = 80
-light.Brightness = 3
-light.Shadows = false
-light.Enabled = false
-light.Parent = part
+local lightFaces = {
+    Enum.NormalId.Front, Enum.NormalId.Back,
+    Enum.NormalId.Left, Enum.NormalId.Right,
+    Enum.NormalId.Top, Enum.NormalId.Bottom
+}
+local lights = {}
+
+for _, face in ipairs(lightFaces) do
+    local light = Instance.new("SurfaceLight")
+    light.Face = face
+    light.Color = Color3.fromRGB(255, 255, 255)
+    light.Range = currentRange
+    light.Brightness = currentBrightness
+    light.Angle = 90
+    light.Shadows = false
+    light.Enabled = false
+    light.Parent = part
+    table.insert(lights, light)
+end
+
+local function updateAllLights()
+    for _, light in ipairs(lights) do
+        light.Range = currentRange
+        light.Brightness = currentBrightness
+        light.Enabled = isLightEnabled
+    end
+end
  
 RunService.RenderStepped:Connect(function()
     local character = player.Character
