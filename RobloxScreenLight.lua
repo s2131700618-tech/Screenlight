@@ -116,7 +116,7 @@ local isLightEnabled = false
 local setting = false
 local Height = 0
 
-local currentRange = 99999
+local currentRange = 80
 local currentBrightness = 10
 
 -- 建立照明燈零件
@@ -144,7 +144,7 @@ for _, face in ipairs(lightFaces) do
     light.Color = Color3.fromRGB(255, 255, 255)
     light.Range = currentRange
     light.Brightness = currentBrightness
-    light.Angle = 120
+    light.Angle = 150
     light.Shadows = false
     light.Enabled = false
     light.Parent = part
