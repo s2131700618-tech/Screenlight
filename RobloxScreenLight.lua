@@ -24,7 +24,7 @@ frame.Parent = screenGui
 local textLabel = Instance.new("TextLabel")
 textLabel.Name = "TitleLabel"
 textLabel.Size = UDim2.new(1, 0, 0, 30)
-textLabel.Text = "Ultra 螢幕中央照明燈 V1.1"
+textLabel.Text = "Ultra 螢幕中央照明燈 V1.1ß"
 textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 textLabel.TextSize = 12
 textLabel.BackgroundTransparency = 1
@@ -178,7 +178,7 @@ end)
 lightTextBox.FocusLost:Connect(function(enterPressed)
     local num = tonumber(lightTextBox.Text)
     if num then
-        light.Range = num
+        light.Range = math.max(num, 0)
     else
         lightTextBox.Text = tostring(light.Range)
     end
@@ -187,7 +187,7 @@ end)
 brightTextBox.FocusLost:Connect(function(enterPressed)
     local num = tonumber(brightTextBox.Text)
     if num then
-        light.Brightness = math.clamp(num, 0, 50)
+        light.Brightness = math.max(num, 0)
     else
         brightTextBox.Text = tostring(light.Brightness)
     end
