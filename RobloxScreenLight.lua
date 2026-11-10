@@ -25,7 +25,7 @@ frame.Parent = screenGui
 local textLabel = Instance.new("TextLabel")
 textLabel.Name = "TitleLabel"
 textLabel.Size = UDim2.new(1, 0, 0, 30)
-textLabel.Text = "Ultra 螢幕中央照明燈 V1.1ß"
+textLabel.Text = "Ultra 螢幕中央照明燈 V1.2Ω"
 textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 textLabel.TextSize = 12
 textLabel.BackgroundTransparency = 1
@@ -60,6 +60,16 @@ setButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 setButton.BackgroundColor3 = Color3.fromRGB(128, 128, 0)
 setButton.TextSize = 16
 setButton.Parent = frame
+
+local oidButton = Instance.new("TextButton")
+oidButton.Name = "OidButton"
+oidButton.Position = UDim2.new(0, -45, 0, 0)
+oidButton.Size = UDim2.new(0, 45, 0, 30)
+oidButton.Text = "方向"
+oidButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+oidButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+oidButton.TextSize = 16
+oidButton.Parent = frame
 
 local settingBox = Instance.new("Frame")
 settingBox.Name = "SettingsFrame"
@@ -115,9 +125,10 @@ local MAX_DISTANCE = 100000
 local isLightEnabled = false
 local setting = false
 local Height = 0
+local oidPos = false
 
 local currentRange = 80
-local currentBrightness = 10
+local currentBrightness = 3
 
 -- 建立照明燈零件
 local part = Instance.new("Part")
@@ -163,18 +174,31 @@ end
 RunService.RenderStepped:Connect(function(deltaTime)
     local character = player.Character
     if character and camera then
+        local rootPart = character:FindFirstChild("HumanoidRootPart")
         local cameraOrigin = camera.CFrame.Position
         local cameraDirection = camera.CFrame.LookVector * MAX_DISTANCE
 
-        local raycastParams = RaycastParams.new()
-        raycastParams.FilterDescendantsInstances = {character, part}
-        raycastParams.FilterType = Enum.RaycastFilterType.Exclude
+        local targetPosition = nil
 
-        local raycastResult = Workspace:Raycast(cameraOrigin, cameraDirection, raycastParams)
-        if raycastResult then
-            part.Position = raycastResult.Position
+        if oidPos and rootPart then
+            -- 跟隨人體位置
+            targetPosition = rootPart.Position
         else
-            part.Position = cameraOrigin + cameraDirection
+            -- 攝影機射線偵測
+            local raycastParams = RaycastParams.new()
+            raycastParams.FilterDescendantsInstances = {character, part}
+            raycastParams.FilterType = Enum.RaycastFilterType.Exclude
+
+            local raycastResult = Workspace:Raycast(cameraOrigin, cameraDirection, raycastParams)
+            if raycastResult then
+                targetPosition = raycastResult.Position
+            else
+                targetPosition = cameraOrigin + cameraDirection
+            end
+        end
+
+        if targetPosition then
+            part.Position = targetPosition
         end
         
         for _, light in ipairs(lights) do
@@ -188,6 +212,7 @@ RunService.RenderStepped:Connect(function(deltaTime)
     settingBox.Size = UDim2.new(1, 0, 0, Height)
     settingBox.Visible = (Height > 1)
 end)
+
 -- 按鈕事件
 lightButton.MouseButton1Click:Connect(function()
     isLightEnabled = not isLightEnabled
@@ -230,4 +255,15 @@ brightTextBox.FocusLost:Connect(function()
         brightTextBox.Text = tostring(currentBrightness)
     end
     updateAllLights()
+end)
+
+oidButton.MouseButton1Click:Connect(function()
+    oidPos = not oidPos
+    if oidPos then
+        oidButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+        oidButton.Text = "人體"
+    else
+        oidButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+        oidButton.Text = "方向"
+    end
 end)
